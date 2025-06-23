@@ -13,8 +13,7 @@ public class SchedulerConfig {
     @Autowired
     private SincronizacionService sincronizacionService;
 
-    // Cambia el valor a una expresión válida para Spring
-    @Scheduled(fixedRateString = "${reloj.intervalo:10s}")
+    @Scheduled(fixedRate = 10000)
     private void sincronizarRelojes() {
         System.out.println("Ejecuntando sincronización de relojes...");
         sincronizacionService.sincronizacionRelojes();

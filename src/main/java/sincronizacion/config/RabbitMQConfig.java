@@ -10,6 +10,6 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     @Bean
     public Queue relojSolicitud() {
-        return QueueBuilder.durable("relojSolicitud").build();
+        return QueueBuilder.durable("reloj.solicitud").build();
     }
 }
