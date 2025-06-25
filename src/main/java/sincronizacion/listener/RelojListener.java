@@ -22,7 +22,6 @@ public class RelojListener {
         try {
             HoraClienteDto dto = objectMapper.readValue(mensajeJson, HoraClienteDto.class);
             System.out.println("Solicitud de reloj recibida: " + dto);
-            //revisar
             sincronizacionService.registrarTiempo(dto);
 
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 package sincronizacion.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,9 @@ public class SincronizacionService {
 
     @Autowired
     private AmqpTemplate rabbitTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public void registrarTiempo(HoraClienteDto dto) {
 
@@ -43,20 +47,23 @@ public class SincronizacionService {
 
         HoraServidorDto ajusteDto = new HoraServidorDto(horaSincronizadaPromedio, diferencias);
 
-        // AHORA ENVIAMOS UN MENSAJE A CADA CLIENTE
+
         enviarAjusteRelojes(ajusteDto);
 
         tiemposClientes.clear();
     }
-    public void enviarAjusteRelojes (HoraServidorDto ajuste) {
-        System.out.println("Iniciando envío de ajustes individuales...");
-        // Iteramos sobre los clientes a los que debemos enviarles el ajuste.
-        // La clave del mapa de diferencias es el nombre del nodo, que usaremos como routing key.
-        ajuste.getDiferencias().keySet().forEach(nombreNodo -> {
-            System.out.println(" -> Enviando ajuste a '" + nombreNodo + "' con datos: " + ajuste);
 
-            // Enviamos el mensaje al exchange, especificando el nombre del nodo como routing key.
-            rabbitTemplate.convertAndSend("reloj.intercambio", nombreNodo, ajuste);
+    public void enviarAjusteRelojes(HoraServidorDto ajuste) {
+        System.out.println("Iniciando envío de ajustes individuales...");
+        ajuste.getDiferencias().keySet().forEach(nombreNodo -> {
+            try {
+                String mensajeJson = objectMapper.writeValueAsString(ajuste);
+                System.out.println(" -> Enviando ajuste a '" + nombreNodo + "' con datos: " + mensajeJson);
+                rabbitTemplate.convertAndSend("reloj.intercambio", nombreNodo, mensajeJson);
+            } catch (Exception e) {
+                System.err.println("Error al serializar o enviar ajuste para el nodo " + nombreNodo);
+                e.printStackTrace();
+            }
         });
         System.out.println("Envío de ajustes finalizado.");
     }
